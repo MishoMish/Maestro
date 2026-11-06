@@ -16,6 +16,7 @@ If the two files disagree about the software, this one wins. Section 5 lists the
 - **Do not delete a decision that changes.** Move it to "Superseded" and say what replaced it and why.
 - **If a software decision would change the wiring or the printed case,** flag it to the students first. The case depends on the pin map.
 - **Add verified facts to "Findings",** and say how each was checked (measured, calculated or from memory).
+- **Git:** agents may commit and push with clear messages, but **never add a `Co-Authored-By: Claude` line or any other Claude attribution.** Commits are credited to the student alone.
 
 ## 1. Decided
 
@@ -68,19 +69,36 @@ If the two files disagree about the software, this one wins. Section 5 lists the
 
 ## 2. Open: waiting for a student answer
 
-No design questions are open. Two approvals are still needed before final firmware is written:
+No design questions are open. The students confirmed the design ("You can start cooking") on 2026-11-07.
 
-- **Song approval (Q15):** the students have not yet confirmed that the three WAV previews sound right.
-- **Design confirmation:** the students have not yet confirmed the full design summary.
+- **Song approval (Q15):** the students have not yet confirmed that the three WAV previews sound right. All three songs are in the firmware so the product is complete, but they are unapproved drafts.
+- **Agent's implementation choices:** see below. A student can overrule any of them.
 
-## 3. Not yet discussed
+## 3. Implementation choices made by the agent
 
-Nothing.
+The students asked the agent to iterate to a finished product, so these small details were chosen without asking. They are not student decisions.
+
+| Topic | Choice | Why |
+| --- | --- | --- |
+| Boot | A short rising scale and LED sweep, then the main menu. | Shows that the device is on, by light and by sound. |
+| Menu sounds | Confirm is a short rising cue and Back a short falling cue, on every press. | Q20 asks for sound cues wherever possible. |
+| Ear intro | Lights each possible key as it plays. The LCD lists the note names at this point only. | The mystery note is not known yet, so nothing is revealed. |
+| Ear order | Notes are added in the order До Ми Сол, then До', Ла, Ре, Фа, Си. | Wide, easy intervals first. |
+| Ear answers | Pressing a key outside the current notes counts as wrong. | Simplest rule. |
+| Ear levels | Levels keep counting after all 8 notes are in play, and each still takes 5 right answers. | Gives a longer game a higher level. |
+| Win playback | Any key skips the whole-piece playback. | *Ode to Joy* takes 38 s. |
+| New record | Judged on points only; the level is stored as its own best. | A single clear rule. |
+| Light only ending | New-record fanfare is LED only; sad or happy cue is audible (Q29); no level beeps. | Q20 limits beeps and fanfare to games that use sound. |
+| Quit or abandon | Partial Ear points are also saved. | Points earned should not be lost. |
+| Idle | Also applies after 60 s on the result, Free play and "Quit?" screens. | A forgotten device should not stay on those screens. |
 
 ## Status and hardware checks
 
-- **Milestone 0 (song script):** built. The students still have to approve the three songs by ear (Q15). `--upload` is untested because `code/platformio.ini` does not exist yet.
-- **Students to do on hardware:** record A1 at all 7 ticks (Q25); record A0 for all 8 keys (Q24); run the 10-minute power-bank test (Q26).
+- **Milestones 0–7:** all built. See `code/README.md` to install and `tools/sim/README.md` for tests.
+- **Tests:** 93 of 93 passed on 2026-11-07, running the real firmware on a simulated ATmega328P, including whole-piece wins. Build size: 46% of flash, 23% of static RAM.
+- **Not tested on real hardware:** no Uno was connected. How it sounds, the real wiring, switches and knob, and the power bank are all unverified.
+- **Students to do on hardware:** follow the checklist in `code/README.md`: A0 at all 8 keys, A1 at all 7 ticks (Q24, Q25), and the 10-minute power-bank test (Q26).
+- **Students to do on Михаил's machine:** run `sudo usermod -aG dialout $USER` once, then log out and in, or uploads will probably fail. The user is not in that group.
 
 ## 4. Superseded
 
@@ -95,7 +113,7 @@ Nothing.
 | Finding | How it was checked |
 | --- | --- |
 | **Two keys cannot be detected reliably, so a two-key gesture cannot be used.** Two pressed keys short part of the ladder and can read as a valid third key. Ми + Сол reads about 682, which decodes as Фа. До + any other key reads 1023, which is just До. | Calculated from the ladder design, not yet measured on hardware. |
-| **The 10 kΩ pull-down leaves plenty of margin for decoding keys.** It shifts a reading by about 21 counts at most, against a ±64 window. | Calculated, not yet measured on hardware. |
+| **The 10 kΩ pull-down leaves enough margin for decoding keys.** It shifts a reading by about 25 counts at most, leaving at least 38 of the ±64 window. With random ±5% resistors, every key still decoded correctly across 20,000 sets, with at least 21 counts to spare. Expected A0 values: 1023, 878, 742, 614, 489, 368, 247, 125. | Calculated and simulated, not yet measured on hardware. This corrects an earlier figure of 21 counts. |
 | **The knob's total travel is not known.** The case only fixes the ticks at −120° to +120°. If the pot turns 270°, 7 even zones are about 38° each, close to the 40° tick spacing. | Ticks checked in `maestro.scad`; the 270° is an assumption. Measure A1 at each tick. |
 | **The pin count is sufficient, with 3 pins to spare.** The Uno has 20 pins and the design uses 17: keys 1, knob 1, LCD 6, piezo 1, LEDs 8. A5 (random seed), D0 and D1 (Serial) stay free. Without the ladder, the keys would need 8 pins: 24 in total, too many. | Counted from the handoff pin map. |
 | **All 8 LEDs can be on at once.** About 100 mA in total: about 14 mA for each red, yellow and green, 9 mA for blue and white. Under the chip's 200 mA total, and A2–A4 are well under their port group's limit. | Calculated from typical LED voltages and datasheet limits from memory, not measured. |
@@ -105,5 +123,6 @@ Nothing.
 | ***Ode to Joy* may not fit as written, contrary to the handoff.** Its middle section normally drops to a low G3, below the keyboard. See Q15. | From memory; confirm against a score. |
 | ***Für Elise* can keep its half-step trill on white keys.** See `tools/songs/1_elise.txt` and Q15. | Draft from memory; check it by ear. |
 | **All three songs are drafted from memory:** *Für Elise* 33 notes, 8 levels; *Ode to Joy* 62 notes, 12 levels; *Turkish March* 38 notes, 8 levels. | Counts from the script. The notes need checking by ear and against a score. |
+| **A fast knob turn passes through the ticks in between,** so it plays each one's cue on the way. It always ends on the right item. | Simulated. |
 | The melody script can run on Михаил's machine: Python 3.12.3 with the standard `wave` module. | Checked on 2026-11-07. |
 | PlatformIO Core 6.2.0 is installed on Михаил's machine. The AVR platform is not, but downloads on the first build.  | Checked on 2026-11-07. |

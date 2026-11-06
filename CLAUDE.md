@@ -6,3 +6,4 @@ Standalone Arduino Uno device that trains musical hearing and memory. University
 - **[HANDOFF_FOR_SOFTWARE_AGENT.md](HANDOFF_FOR_SOFTWARE_AGENT.md):** the hardware, pin map, wiring, case and promised features. Treat the hardware as fixed.
 - **`code/`:** the firmware (PlatformIO). Do not write the final firmware until the students confirm that the design is settled.
 - **`tools/make_songs.py`:** turns `tools/songs/*.txt` into `code/src/melodies_data.h` and WAV previews. Edit the song files, never the generated header.
+- **Git:** agents may commit and push with clear commit messages. **Never add a `Co-Authored-By: Claude` line or any other Claude attribution**; commits are credited to the student alone.
