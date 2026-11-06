@@ -1,0 +1,15 @@
+# Fur Elise, main theme. Shifted down a third along the scale, so the
+# E-D#-E trill becomes Do'-Si-Do', a real half step. Low A3 dropped twice.
+title=Fur Elise
+short=ELISE
+tempo=60
+max_notes=40
+
+Do'/1 Si/1 Do'/1 Si/1 Do'/1 |
+Sol/1 Si/1 La/1 |
+Fa/4 Do/1 Fa/1 |
+Sol/3 Do/1 Mi/1 Sol/1 |
+La/3 Do/1 Do'/1 Si/1 |
+Do'/1 Si/1 Do'/1 Sol/1 Si/1 La/1 |
+Fa/4 Do/1 Fa/1 |
+Sol/3 Do/1 La/1 Sol/1 Fa/6 |

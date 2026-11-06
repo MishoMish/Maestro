@@ -1,0 +1,18 @@
+# Ode to Joy, full theme in C (A A' B A'). Low G3 in section B moved up an octave.
+title=Ode to Joy
+short=ODE
+tempo=100
+max_notes=62
+
+Mi/4 Mi/4 Fa/4 Sol/4 |
+Sol/4 Fa/4 Mi/4 Re/4 |
+Do/4 Do/4 Re/4 Mi/4 |
+Mi/6 Re/2 Re/8 |
+Mi/4 Mi/4 Fa/4 Sol/4 Sol/4 Fa/4 Mi/4 Re/4 |
+Do/4 Do/4 Re/4 Mi/4 Re/6 Do/2 Do/8 |
+Re/4 Re/4 Mi/4 Do/4 |
+Re/4 Mi/2 Fa/2 Mi/4 Do/4 |
+Re/4 Mi/2 Fa/2 Mi/4 Re/4 |
+Do/4 Re/4 Sol/8 |
+Mi/4 Mi/4 Fa/4 Sol/4 Sol/4 Fa/4 Mi/4 Re/4 |
+Do/4 Do/4 Re/4 Mi/4 Re/6 Do/2 Do/8 |

@@ -1,0 +1,15 @@
+# Turkish March, opening theme. The first figure is shifted so A-G#-A becomes
+# Fa-Mi-Fa, a real half step. Higher figures are folded down to fit the octave.
+title=Turkish March
+short=TURK
+tempo=75
+max_notes=40
+
+Sol/1 Fa/1 Mi/1 Fa/1 La/4 |
+Si/1 La/1 Sol/1 La/1 Do'/4 |
+Do'/1 Si/1 La/1 Si/1 |
+Si/1 La/1 Sol/1 La/1 Si/1 La/1 Sol/1 La/1 |
+Do'/4 La/2 Do'/2 |
+Si/2 La/2 Sol/2 La/2 |
+Si/2 La/2 Sol/2 La/2 |
+Si/2 La/2 Sol/2 Fa/2 Mi/4 |
