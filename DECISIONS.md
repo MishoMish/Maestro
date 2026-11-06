@@ -37,6 +37,25 @@ If the two files disagree about the software, this one wins. Section 5 lists the
 | Q14 | Ear mode | Each question plays a low До, then the mystery note; auto-replay repeats both. Start with 3 notes (До Ми Сол) and add one per level, with 5 correct answers to move up. Each level starts by playing its possible notes in ascending order. No note twice in a row; random seed from unconnected A5. Same lives and Easy rules, no rhythm judging. Continues at all 8 notes until lives run out. | |
 | Q15 | Adapting melodies | Shift *Für Elise* and *Turkish March* along the scale so their key figures fall on real half steps. Leave *Ode to Joy* in C and change only its low G3. Move out-of-range notes by an octave or drop them. Students approve WAV previews by ear before anything goes into the firmware. | The students also asked for a script on the computer that makes every song and exports it for the Arduino. Its design is in Q22. |
 | Q16 | Meaning of "whole piece" | The recognisable main theme only: 30–40 notes for *Für Elise*, 30–40 for *Turkish March*, up to 60 for *Ode to Joy*. The report states that these are simplified versions. Finishing a piece counts as winning it. | |
+| Q17 | Abandoned game | After 3 auto-replays in a row with no key press, the game returns to the menu. Any record earned is already saved. | |
+| Q18 | Scoring | 10 points per note in a passed level, plus 5 per good rhythm gap. Finishing a piece adds 50 per remaining life. Ear: 10 per correct answer. Mistakes subtract nothing. Every game starts at level 1. | |
+| Q19 | Records | One record per mode per piece: 9 for the melody modes, 1 for Ear, 10 in total. Each stores best points and best level. The Records screen has one page per piece with Light, Sound and Light + sound side by side, a page for Ear, and Back. | |
+| Q20 | Results and sound cues | At the end of a game that uses sound, play one beep per level reached, then a fanfare for a new record. The Records screen stays LCD only; the report states this limitation. **Use sound cues wherever possible, with distinct happy and sad ones.** | The bold rule was added by the students ("I WANT SOUND CUES WHERE POSSIBLE"). Q8's silent Light only games still apply, unless changed; see Q29. |
+| Q21 | End of a game | The LCD shows the result and any new record, and keys are ignored for the first second. Any key then returns to the piece list (main menu after Ear). Winning plays the whole piece in the mode's own channels first. | |
+| Q22 | Melody script and format | Python, standard library only: `tools/make_songs.py`, with one text file per song in `tools/songs/`. Checks range, lengths and level counts. Generates `code/src/melodies_data.h` and square-wave WAV previews; `--upload` also uploads. One byte per note in PROGMEM (3 bits note, 5 bits length). No separate rests: a rest is added to the previous note's length. Notes sound for about 85% of their length. Built before the firmware. | The students left the tool choice to the agent ("use whatever is best"). Built on 2026-11-07. |
+| Q23 | Feedback signals | Correct note: echo only. Wrong: red LEDs and a low buzz. Bad rhythm: yellow LEDs and a wobbling tone. Level up: green LEDs and three rising notes. Game over: LEDs off in sequence and falling notes. Win: LED chase and the whole piece. Each mode uses only its own channels (Q8). **Colour signals light only the keys that have that colour: red = До, До'; yellow = Ре, Ла; green = Ми, Си.** Blue (Фа) and white (Сол) are not used for signals. | The students noted that not every key has every colour. **Interpretation:** this is the bold rule. |
+| Q24 | Reading the keys | Read about every 5 ms; a press counts after 3 matching reads, timed from the first. A new press requires a full release. Holding never repeats. Keys are ignored while the prompt plays. A two-key press counts as whatever stable key it reads. No stored calibration; adjust a constant if hardware readings require it. | |
+| Q25 | Reading the knob | Split 0–1023 evenly into the list's items, with about 20 counts of hysteresis and a little averaging. One constant reverses direction. Measure A1 at all 7 ticks with the test sketch and adjust if needed. | |
+| Q26 | Power bank | Test first: run the test sketch from the bank, untouched, for 10 minutes. Add no keep-alive unless it switches off. No sleep mode. | |
+| Q27 | Idle screen | After 60 s with no input in a menu, show a short prompt and a slow LED chase with no sound. The first touch only wakes the device. | |
+| Q28 | Code layout and milestones | Small modules: `main.cpp` for the state machine, plus input, output, records and generated melodies. Serial debug behind a compile flag. Milestones: (0) melody script; (1) core engine with one piece in Light + sound; (2) menus and knob; (3) all modes, lives and Easy; (4) rhythm; (5) Ear; (6) scoring and records; (7) feedback polish, idle screen. Each one is a working version. | |
+| Q29 | Sound after a Light only game | The piezo stays silent during Light only play (Q8), but the result screen plays the happy or sad cue, because the game is over and it cannot affect the score. | |
+| Q30 | EEPROM layout | One version byte, then 10 records of 3 bytes each (2 for points, 1 for level): 31 bytes. A wrong version byte on start-up clears the records. A record is written when a passed level beats it, using `EEPROM.put`, which skips unchanged bytes. Reset is tick 7 with a Yes/No screen. | |
+| Q31 | Must-have, nice-to-have and demo | Must: milestones 0–3, 5 and 6, which cover the proposal. Cut first if time runs out: rhythm (4), Easy, Free play, idle screen, polish. Demo of about 3 minutes: power bank start; Ode in Light + sound; Sound only with eyes closed, including a mistake; Light only in silence; Ear; records surviving a power-off. | The students did ask for rhythm and Easy, so the cut list is only a fallback. |
+| Q32 | *Ode to Joy* length | Keep the full theme at 62 notes. This changes the "up to 60" limit in Q16 for this piece. | Answered "whatever - yes". |
+| Q33 | Leaving Free play | Turning the knob one tick leaves Free play at once, with no "Quit?" screen, because there is nothing to lose. | |
+| Q34 | Easy in Ear mode | Ear has no piece list, so the "Easy?" screen appears right after choosing Ear. | |
+| Q35 | "Quit?" screen in strict modes | The pause screen counts as a menu, so it uses every channel (Q8), even in Light only and Sound only games. Play resumes in strict mode after No. | |
 
 ### Q8: what each mode may use during play
 
@@ -49,27 +68,19 @@ If the two files disagree about the software, this one wins. Section 5 lists the
 
 ## 2. Open: waiting for a student answer
 
-The recommendations below are **proposals, not decisions**.
+No design questions are open. Two approvals are still needed before final firmware is written:
 
-| ID | Topic | Recommendation |
-| --- | --- | --- |
-| Q17 | Abandoned game | After 3 auto-replays in a row with no key press, the game returns to the menu. Any record earned is already saved. |
-| Q18 | Scoring | 10 points per note in a passed level, plus 5 per good rhythm gap. Finishing a piece adds 50 per remaining life. Ear: 10 per correct answer. Mistakes subtract nothing. Every game starts at level 1. |
-| Q19 | Records | One record per mode per piece: 9 for the melody modes, 1 for Ear, 10 in total. Each stores best points and best level. The Records screen has one page per piece with Light, Sound and Light + sound side by side, a page for Ear, and Back. |
-| Q20 | Results without the LCD | At the end of every game that uses sound, play one beep per level reached, then a fanfare for a new record. The Records screen stays LCD only; the report states this limitation. |
-| Q21 | End of a game | The LCD shows the result and any new record, and keys are ignored for the first second. Any key then returns to the piece list (main menu after Ear). Winning plays the whole piece in the mode's own channels first. |
-| Q22 | Melody script and format | Python, standard library only, in `tools/`. One text file per song with note names, lengths in sixteenths, `\|` marking level cuts and a tempo line. Checks range, lengths and level counts. Generates `code/src/melodies_data.h` and square-wave WAV previews; `--upload` also runs `pio run -t upload`. One byte per note in PROGMEM (3 bits note, 5 bits length). No separate rests: a rest is added to the previous note's length. Notes sound for about 85% of their length. Built first, before the firmware. |
-| Q23 | Feedback signals | Correct note: echo only. Wrong: red LEDs and a low buzz. Bad rhythm: yellow LEDs and a wobbling tone. Level up: green LEDs and three rising notes. Game over: LEDs off in sequence and falling notes. Win: LED chase and the whole piece. Each mode uses only its own channels (Q8). |
-| Q24 | Reading the keys | Read about every 5 ms; a press counts after 3 matching reads, timed from the first. A new press requires a full release. Holding never repeats. Keys are ignored while the prompt plays. A two-key press counts as whatever stable key it reads. No stored calibration; adjust a constant if hardware readings require it. |
-| Q25 | Reading the knob | Split 0–1023 evenly into the list's items, with about 20 counts of hysteresis and a little averaging. One constant reverses direction. Measure A1 at all 7 ticks with the test sketch and adjust if needed. |
-| Q26 | Power bank | Test first: run the test sketch from the bank, untouched, for 10 minutes. Add no keep-alive unless it switches off. No sleep mode. |
-| Q27 | Idle screen | After 60 s with no input in a menu, show a short prompt and a slow LED chase with no sound. The first touch only wakes the device. |
-| Q28 | Code layout and milestones | Small modules: `main.cpp` for the state machine, plus input, output, records and generated melodies. Serial debug behind a compile flag. Milestones: (0) melody script; (1) core engine with one piece in Light + sound; (2) menus and knob; (3) all modes, lives and Easy; (4) rhythm; (5) Ear; (6) scoring and records; (7) feedback polish, idle screen. Each one is a working version. |
+- **Song approval (Q15):** the students have not yet confirmed that the three WAV previews sound right.
+- **Design confirmation:** the students have not yet confirmed the full design summary.
 
 ## 3. Not yet discussed
 
-- EEPROM layout, first-boot setup and limiting writes (needs Q19)
-- Demo script, and which features are "must" vs "nice to have" (needs Q28)
+Nothing.
+
+## Status and hardware checks
+
+- **Milestone 0 (song script):** built. The students still have to approve the three songs by ear (Q15). `--upload` is untested because `code/platformio.ini` does not exist yet.
+- **Students to do on hardware:** record A1 at all 7 ticks (Q25); record A0 for all 8 keys (Q24); run the 10-minute power-bank test (Q26).
 
 ## 4. Superseded
 
@@ -86,8 +97,13 @@ The recommendations below are **proposals, not decisions**.
 | **Two keys cannot be detected reliably, so a two-key gesture cannot be used.** Two pressed keys short part of the ladder and can read as a valid third key. Ми + Сол reads about 682, which decodes as Фа. До + any other key reads 1023, which is just До. | Calculated from the ladder design, not yet measured on hardware. |
 | **The 10 kΩ pull-down leaves plenty of margin for decoding keys.** It shifts a reading by about 21 counts at most, against a ±64 window. | Calculated, not yet measured on hardware. |
 | **The knob's total travel is not known.** The case only fixes the ticks at −120° to +120°. If the pot turns 270°, 7 even zones are about 38° each, close to the 40° tick spacing. | Ticks checked in `maestro.scad`; the 270° is an assumption. Measure A1 at each tick. |
+| **The pin count is sufficient, with 3 pins to spare.** The Uno has 20 pins and the design uses 17: keys 1, knob 1, LCD 6, piezo 1, LEDs 8. A5 (random seed), D0 and D1 (Serial) stay free. Without the ladder, the keys would need 8 pins: 24 in total, too many. | Counted from the handoff pin map. |
+| **All 8 LEDs can be on at once.** About 100 mA in total: about 14 mA for each red, yellow and green, 9 mA for blue and white. Under the chip's 200 mA total, and A2–A4 are well under their port group's limit. | Calculated from typical LED voltages and datasheet limits from memory, not measured. |
+| **LED load should not disturb key or knob decoding.** The ladder and pot run from the same 5 V as the ADC reference, so readings follow any supply dip. | Reasoned from the circuit, not measured. |
+| **Only D6, D9 and D10 can fade with PWM among the LED pins,** so LED signals are on/off only. | From the Uno pinout. |
 | **The hardware test sketch is at** `print/maestro_case/maestro_hw_test/maestro_hw_test.ino`, not `maestro_hw_test/` as the handoff says. | Checked in the repo. |
 | ***Ode to Joy* may not fit as written, contrary to the handoff.** Its middle section normally drops to a low G3, below the keyboard. See Q15. | From memory; confirm against a score. |
-| ***Für Elise* can keep its half-step trill on white keys.** A draft opening is До'-Си-До'-Си-До'-Сол-Си-Ла-Фа. See Q15. | Draft from memory; check it by ear. |
+| ***Für Elise* can keep its half-step trill on white keys.** See `tools/songs/1_elise.txt` and Q15. | Draft from memory; check it by ear. |
+| **All three songs are drafted from memory:** *Für Elise* 33 notes, 8 levels; *Ode to Joy* 62 notes, 12 levels; *Turkish March* 38 notes, 8 levels. | Counts from the script. The notes need checking by ear and against a score. |
 | The melody script can run on Михаил's machine: Python 3.12.3 with the standard `wave` module. | Checked on 2026-11-07. |
-| PlatformIO Core 6.2.0 is installed on Михаил's machine. The AVR platform is not, but downloads on the first build. `code/` is currently empty. | Checked on 2026-11-07. |
+| PlatformIO Core 6.2.0 is installed on Михаил's machine. The AVR platform is not, but downloads on the first build.  | Checked on 2026-11-07. |
