@@ -1,0 +1,60 @@
+{
+	"eng_plate_temp": [
+		"75"
+	],
+	"eng_plate_temp_initial_layer": [
+		"75"
+	],
+	"fan_max_speed": [
+		"60"
+	],
+	"fan_min_speed": [
+		"40"
+	],
+	"filament_extruder_variant": [
+		"Direct Drive Standard"
+	],
+	"filament_max_volumetric_speed": [
+		"12"
+	],
+	"filament_retraction_length": [
+		"1.2"
+	],
+	"filament_retraction_speed": [
+		"35"
+	],
+	"filament_settings_id": [
+		"Maestro PETG Black"
+	],
+	"filament_z_hop": [
+		"0.2"
+	],
+	"from": "User",
+	"hot_plate_temp": [
+		"75"
+	],
+	"hot_plate_temp_initial_layer": [
+		"75"
+	],
+	"inherits": "Creality Generic PETG @Ender-3V3-all",
+	"name": "Maestro PETG Black",
+	"nozzle_temperature": [
+		"235"
+	],
+	"nozzle_temperature_initial_layer": [
+		"240"
+	],
+	"overhang_fan_speed": [
+		"90"
+	],
+	"slow_down_layer_time": [
+		"10"
+	],
+	"textured_plate_temp": [
+		"75"
+	],
+	"textured_plate_temp_initial_layer": [
+		"75"
+	],
+	"version": "2.3.2.75"
+}

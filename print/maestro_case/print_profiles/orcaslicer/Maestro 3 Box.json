@@ -1,0 +1,22 @@
+{
+	"bottom_shell_layers": "3",
+	"brim_type": "no_brim",
+	"enable_support": "0",
+	"from": "User",
+	"inherits": "0.20mm Standard @Creality Ender3V3SE 0.4",
+	"name": "Maestro 3 Box",
+	"outer_wall_speed": "50",
+	"print_extruder_id": [
+		"1"
+	],
+	"print_extruder_variant": [
+		"Direct Drive Standard"
+	],
+	"print_settings_id": "Maestro 3 Box",
+	"seam_position": "back",
+	"skirt_loops": "1",
+	"sparse_infill_density": "15%",
+	"top_shell_layers": "4",
+	"version": "2.3.2.75",
+	"wall_loops": "3"
+}

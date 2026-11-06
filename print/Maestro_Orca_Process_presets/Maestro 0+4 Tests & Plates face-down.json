@@ -1,0 +1,24 @@
+{
+	"bottom_shell_layers": "3",
+	"brim_type": "no_brim",
+	"elefant_foot_compensation": "0.15",
+	"enable_support": "0",
+	"from": "User",
+	"inherits": "0.20mm Standard @Creality Ender3V3SE 0.4",
+	"initial_layer_infill_speed": "20",
+	"initial_layer_speed": "20",
+	"name": "Maestro 0+4 Tests & Plates face-down",
+	"print_extruder_id": [
+		"1"
+	],
+	"print_extruder_variant": [
+		"Direct Drive Standard"
+	],
+	"print_settings_id": "Maestro 0+4 Tests & Plates face-down",
+	"seam_position": "back",
+	"skirt_loops": "1",
+	"sparse_infill_density": "25%",
+	"top_shell_layers": "4",
+	"version": "2.3.2.75",
+	"wall_loops": "3"
+}
