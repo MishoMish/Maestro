@@ -1,0 +1,3 @@
+#!/bin/sh
+# Маестро: one command for everything. Run ./maestro for a menu, ./maestro help for a list.
+exec python3 "$(dirname "$0")/tools/maestro_cli.py" "$@"

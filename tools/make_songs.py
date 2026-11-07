@@ -26,6 +26,8 @@ MAX_LENGTH = 31                     # 5 bits in the stored byte
 MIN_GAP_MS = 200                    # fastest press a beginner is asked for
 MAX_TITLE = 16                      # LCD width
 MAX_SHORT = 5                       # name on the Records page
+MAX_NOTES = 255                     # stored in one byte
+MAX_SONGS = 7                       # the piece list lights one key per song, plus Back
 SOUND_FRACTION = 0.85               # DECISIONS.md Q22
 SAMPLE_RATE = 22050
 
@@ -38,8 +40,9 @@ def parse_song(text, source="song"):
     """Return a song dict, or raise SongError listing every problem found."""
     fields, notes, cuts, errors = {}, [], [], []
     for line_no, raw in enumerate(text.splitlines(), 1):
-        line = raw.split("#", 1)[0].strip()
-        if not line:
+        # A comment is a # on its own, so that a typed sharp like Do#/4 gets a clear error.
+        line = " ".join(raw.partition(" #")[0].split())
+        if not line or line.startswith("#"):
             continue
         if "=" in line:
             key, value = line.split("=", 1)
@@ -52,9 +55,9 @@ def parse_song(text, source="song"):
                 continue
             name, slash, length = token.partition("/")
             if name not in NOTES:
-                errors.append(f"line {line_no}: '{name}' is not one of the 8 keys")
+                errors.append(f"line {line_no}: '{name}' is not a key. Use one of: {' '.join(NOTES)}")
             elif not slash or not length.isdigit() or not 1 <= int(length) <= MAX_LENGTH:
-                errors.append(f"line {line_no}: '{token}' needs a length from 1 to {MAX_LENGTH}")
+                errors.append(f"line {line_no}: '{token}' needs a length from 1 to {MAX_LENGTH}, like {name}/4")
             else:
                 notes.append((NOTES.index(name), int(length)))
     if notes and (not cuts or cuts[-1] != len(notes)):
@@ -75,14 +78,18 @@ def parse_song(text, source="song"):
     if errors:
         raise SongError(f"{source}:\n  " + "\n  ".join(errors))
 
+    if not notes:
+        raise SongError(f"{source}:\n  no notes found")
     sixteenth_ms = round(15000 / int(tempo))
-    if len(notes) > int(max_notes):
-        errors.append(f"{len(notes)} notes, limit is {max_notes}")
+    if len(notes) > MAX_NOTES:
+        errors.append(f"{len(notes)} notes, the firmware can hold at most {MAX_NOTES}")
+    elif len(notes) > int(max_notes):
+        errors.append(f"{len(notes)} notes, but max_notes={max_notes}. Raise max_notes or remove notes")
     if not MIN_LEVELS <= len(cuts) <= MAX_LEVELS:
-        errors.append(f"{len(cuts)} levels, must be {MIN_LEVELS}-{MAX_LEVELS}")
+        errors.append(f"{len(cuts)} levels, must be {MIN_LEVELS}-{MAX_LEVELS}. Levels end at each |")
     shortest = min(length for _, length in notes[:-1]) * sixteenth_ms
     if shortest < MIN_GAP_MS:
-        errors.append(f"shortest gap is {shortest} ms, minimum is {MIN_GAP_MS} ms")
+        errors.append(f"shortest gap is {shortest} ms, minimum is {MIN_GAP_MS} ms. Lower the tempo")
     if errors:
         raise SongError(f"{source}:\n  " + "\n  ".join(errors))
     return {"title": title, "short": short, "sixteenth_ms": sixteenth_ms, "notes": notes, "cuts": cuts}
@@ -101,6 +108,8 @@ def load_songs(song_dir=SONG_DIR):
         raise SongError("\n".join(problems))
     if not songs:
         raise SongError(f"no songs found in {song_dir}")
+    if len(songs) > MAX_SONGS:
+        raise SongError(f"{len(songs)} songs, but the piece list holds at most {MAX_SONGS}")
     return songs
 
 

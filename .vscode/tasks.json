@@ -1,0 +1,63 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Maestro: Upload the game",
+      "type": "shell",
+      "command": "python3",
+      "windows": { "command": "python" },
+      "args": ["tools/maestro_cli.py", "upload"],
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Maestro: Test the wiring",
+      "type": "shell",
+      "command": "python3",
+      "windows": { "command": "python" },
+      "args": ["tools/maestro_cli.py", "hwtest"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Maestro: Check this computer",
+      "type": "shell",
+      "command": "python3",
+      "windows": { "command": "python" },
+      "args": ["tools/maestro_cli.py", "check"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Maestro: Check all songs",
+      "type": "shell",
+      "command": "python3",
+      "windows": { "command": "python" },
+      "args": ["tools/maestro_cli.py", "songs"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Maestro: Listen to a song",
+      "type": "shell",
+      "command": "python3",
+      "windows": { "command": "python" },
+      "args": ["tools/maestro_cli.py", "listen", "${input:song}"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Maestro: Run the tests",
+      "type": "shell",
+      "command": "python3",
+      "windows": { "command": "python" },
+      "args": ["tools/maestro_cli.py", "test"],
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "song",
+      "type": "promptString",
+      "description": "Song name, for example ode, elise or turkish",
+      "default": "ode"
+    }
+  ]
+}
