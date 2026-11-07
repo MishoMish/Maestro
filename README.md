@@ -2,7 +2,7 @@
 
 A standalone device that trains musical hearing and memory. It plays a melody by light, sound or both, and you repeat it on 8 piano keys. Built on an Arduino Uno by Богомил Стоянов and Михаил Доброславски.
 
-**What to do next:** see [NEXT_STEPS.md](NEXT_STEPS.md).
+**What to do next:** see [NEXT_STEPS.md](NEXT_STEPS.md). **To build one:** see the [build guide](docs/index.html).
 
 ## Quick start
 
@@ -67,6 +67,10 @@ Open [code/src/config.h](code/src/config.h), change the number, and run `./maest
 
 The sounds and LED signals are the `S_...` tables at the top of [code/src/output.cpp](code/src/output.cpp). Each step is `{frequency in Hz, milliseconds, LEDs}`.
 
+### Change the build guide
+
+Edit [tools/guide/build_guide.py](tools/guide/build_guide.py) for the text, or [tools/guide/wiring.py](tools/guide/wiring.py) for the wiring, then run `python3 tools/guide/build_guide.py`. It won't build if the wiring fails its electrical check.
+
 ### If something goes wrong
 
 Run `./maestro check` first. Then see [the troubleshooting table](code/README.md#troubleshooting).
@@ -102,4 +106,6 @@ You have 3 lives, and Easy mode has no limit. If you stop playing for 8 s, the m
 | [code/src/](code/src/) | The firmware |
 | [code/hwtest/](code/hwtest/) | The hardware test |
 | [tools/sim/](tools/sim/) | The simulated Uno and its tests |
+| [docs/index.html](docs/index.html) | The step-by-step build guide, ready to publish |
+| [tools/guide/](tools/guide/) | Generates the guide. `wiring.py` is the wiring as data, and it's checked electrically on every build |
 | [print/maestro_case/](print/maestro_case/) | The 3D-printed case: [assembly and wiring](print/maestro_case/README.md), [print plates](print/maestro_case/plates/HOW_TO_PRINT.md) |

@@ -31,7 +31,7 @@ Follow [HOW_TO_PRINT.md](print/maestro_case/plates/HOW_TO_PRINT.md).
 
 ## 5. Wire and test
 
-Follow [the wiring section](print/maestro_case/README.md). Test before closing the box.
+Follow [the build guide](docs/index.html), which has a diagram for every step. Test before closing the box.
 
 - [ ] Run `./maestro hwtest`. Every LED should light once, in key order.
 - [ ] Adjust the LCD contrast pot until text is visible.
@@ -88,7 +88,14 @@ These need stating plainly:
 - [ ] How it was tested: simulated first, then on the device.
 - [ ] Photos of the device.
 
-## 12. Prepare the demo
+## 12. Publish the build guide
+
+- [ ] Take real photos of each stage and add them to [the guide](docs/index.html). It only has generated diagrams and computer renders so far.
+- [ ] Update the guide if building it for real showed any step was wrong, especially the contrast pot's leg spacing and whether the kit's wires are long enough.
+- [ ] After merging to `main`, change `BRANCH` in [build_guide.py](tools/guide/build_guide.py) and rebuild, so that its download command stays right.
+- [ ] To publish it on GitHub, turn on Pages for the `/docs` folder in the repository's settings.
+
+## 13. Prepare the demo
 
 - [ ] Rehearse the script, about 3 minutes:
   1. Start from the power bank.
@@ -100,7 +107,7 @@ These need stating plainly:
 - [ ] Earn a real record beforehand, so the Records screen isn't empty.
 - [ ] Bring a spare power bank, a USB cable, and a laptop that can run `./maestro upload`.
 
-## 13. After the demo
+## 14. After the demo
 
 - [ ] Return the borrowed kit parts unmodified. Nothing may be soldered or glued.
 
