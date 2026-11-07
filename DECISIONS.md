@@ -94,11 +94,13 @@ The students asked the agent to iterate to a finished product, so these small de
 
 ## Status and hardware checks
 
-- **Milestones 0–7:** all built. See `code/README.md` to install and `tools/sim/README.md` for tests.
+- **Milestones 0–7:** all built. See [README.md](README.md) for how to use everything and [NEXT_STEPS.md](NEXT_STEPS.md) for what remains.
+- **Tools:** `./maestro` does everything, with matching VS Code tasks. Added at the students' request to make uploading and song changes as easy as possible.
 - **Tests:** 93 of 93 passed on 2026-11-07, running the real firmware on a simulated ATmega328P, including whole-piece wins. Build size: 46% of flash, 23% of static RAM.
 - **Not tested on real hardware:** no Uno was connected. How it sounds, the real wiring, switches and knob, and the power bank are all unverified.
 - **Students to do on hardware:** follow the checklist in `code/README.md`: A0 at all 8 keys, A1 at all 7 ticks (Q24, Q25), and the 10-minute power-bank test (Q26).
-- **Students to do on Михаил's machine:** run `sudo usermod -aG dialout $USER` once, then log out and in, or uploads will probably fail. The user is not in that group.
+- **Students to do on Михаил's machine:** run `./maestro fix-permissions` once, or uploads will probably fail. The user is not in the `dialout` group.
+- **Not tested with a real Uno:** `./maestro upload`, `hwtest` and `monitor`, including their permission handling, because no Uno was connected. Their no-Uno errors and Uno detection logic were checked. Windows is untested.
 
 ## 4. Superseded
 
@@ -123,6 +125,7 @@ The students asked the agent to iterate to a finished product, so these small de
 | ***Ode to Joy* may not fit as written, contrary to the handoff.** Its middle section normally drops to a low G3, below the keyboard. See Q15. | From memory; confirm against a score. |
 | ***Für Elise* can keep its half-step trill on white keys.** See `tools/songs/1_elise.txt` and Q15. | Draft from memory; check it by ear. |
 | **All three songs are drafted from memory:** *Für Elise* 33 notes, 8 levels; *Ode to Joy* 62 notes, 12 levels; *Turkish March* 38 notes, 8 levels. | Counts from the script. The notes need checking by ear and against a score. |
+| **Adding or removing a song clears all records,** because the layout and version byte change. Adding a 4th song worked on the simulated Uno: it appeared in the piece list, played, and saved to its own record slot. | Simulated with a temporary song on 2026-11-07. |
 | **A fast knob turn passes through the ticks in between,** so it plays each one's cue on the way. It always ends on the right item. | Simulated. |
 | The melody script can run on Михаил's machine: Python 3.12.3 with the standard `wave` module. | Checked on 2026-11-07. |
 | PlatformIO Core 6.2.0 is installed on Михаил's machine. The AVR platform is not, but downloads on the first build.  | Checked on 2026-11-07. |

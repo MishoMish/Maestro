@@ -1,15 +1,18 @@
 # Маестро firmware
 
+All the usual commands are in the [main README](../README.md). This page covers first-time setup and troubleshooting.
+
 ## First time on the real device
 
 1. **Wire it** as in `print/maestro_case/README.md`, section 5.
-2. **Install PlatformIO** if needed. On Linux, also add yourself to the serial port group once, then log out and back in:
+2. **Prepare this computer:**
    ```
-   sudo usermod -aG dialout $USER
+   ./maestro check
+   ./maestro fix-permissions    # only if check asks for it
    ```
-3. **Connect the Uno by USB and upload the hardware test:**
+3. **Connect the Uno by USB and run the hardware test:**
    ```
-   pio run -d code -e hwtest -t upload
+   ./maestro hwtest
    ```
 4. **Check the hardware.** Every LED lights once in key order. Then, with the LCD contrast pot adjusted until text is visible:
 
@@ -21,25 +24,11 @@
 
 5. **Upload the game:**
    ```
-   pio run -d code -t upload
+   ./maestro upload
    ```
 6. **Test the power bank:** run it from the bank, untouched, for 10 minutes. If it switches off, try another bank; the firmware has no keep-alive (DECISIONS.md, Q26).
 
 Records survive uploads, so use tick 7 (Reset records) to clear any from testing.
-
-## Using it
-
-Turn the knob to choose and press any key to confirm. Turning the knob one tick during a game opens "Quit?".
-
-| Tick | Item |
-| --- | --- |
-| 1 | Light only |
-| 2 | Sound only |
-| 3 | Light + sound |
-| 4 | Ear |
-| 5 | Free play |
-| 6 | Records |
-| 7 | Reset records |
 
 ## Troubleshooting
 
@@ -51,18 +40,17 @@ Turn the knob to choose and press any key to confirm. Turning the knob one tick 
 | Keys trigger by themselves | A0 wire or pull-down is loose |
 | LCD shows blocks or nothing | Adjust the contrast pot, then check the RS, E and D4–D7 wires |
 | A note or LED is on the wrong key | Check the LED pin order in `src/config.h` against the wiring |
-| Upload fails with a port error | Check the USB cable and the `dialout` group; close any open serial monitor |
+| Upload fails with a port error | Run `./maestro check`, try another USB cable, and close any open serial monitor |
 | Upload fails with a sync error | Nothing may be connected to D0 and D1 |
 
-For a log of game state changes over USB:
-```
-pio run -d code -e debug -t upload
-pio device monitor -d code -e debug
-```
+For a log of game state changes over USB, run `./maestro monitor`.
 
-## Changing things
+## How the code is laid out
 
-- **Songs:** edit `tools/songs/*.txt`, then run `python3 tools/make_songs.py --upload`. Never edit `src/melodies_data.h`, which is generated.
-- **Rules and timings:** the constants are in `src/config.h`.
-- **Code layout:** `main.cpp` is the state machine, `input` reads the keys and knob, `output` drives the LEDs, piezo and LCD, and `records` stores high scores in EEPROM.
-- **Tests:** `python3 tools/sim/run_tests.py`; see `tools/sim/README.md`.
+- `src/main.cpp`: the state machine, with all the game rules
+- `src/input.cpp`: reads the keys and knob
+- `src/output.cpp`: drives the LEDs, piezo and LCD, and holds the sound and light signals
+- `src/records.cpp`: stores high scores in EEPROM
+- `src/config.h`: pins and every tunable number
+- `src/melodies_data.h`: generated from `tools/songs/`, so never edit it
+- `hwtest/main.cpp`: the hardware test
