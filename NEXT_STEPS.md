@@ -2,11 +2,11 @@
 
 Work from top to bottom and tick things off. Skip anything you've already done, such as printing. Commands are explained in the [README](README.md).
 
-**Already done:** the design, all the firmware, the song tools and 93 tests on a simulated Uno. Nothing has run on a real Uno yet, so everything below that touches the device is still unproven.
+**Already done:** the design, all the firmware, the song tools and 93 tests on a simulated Uno. The game is uploaded and starts on the real Uno, tested with nothing wired, so the keys, knob, LCD, LEDs and piezo are still unproven.
 
 ## 1. Set up your computers
 
-- [ ] Run `./maestro check`, then `./maestro fix-permissions` if it asks you to.
+- [x] Run `./maestro check`, then `./maestro fix-permissions` if it asks you to (done on Михаил's computer; log out and in once to finish).
 - [ ] Give Богомил the code and have them run `./maestro check` too. On Windows, use `python tools\maestro_cli.py check`; this hasn't been tried on Windows yet.
 
 ## 2. Approve the songs

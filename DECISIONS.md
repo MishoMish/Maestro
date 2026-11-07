@@ -97,10 +97,10 @@ The students asked the agent to iterate to a finished product, so these small de
 - **Milestones 0–7:** all built. See [README.md](README.md) for how to use everything and [NEXT_STEPS.md](NEXT_STEPS.md) for what remains.
 - **Tools:** `./maestro` does everything, with matching VS Code tasks. Added at the students' request to make uploading and song changes as easy as possible.
 - **Tests:** 93 of 93 passed on 2026-11-07, running the real firmware on a simulated ATmega328P, including whole-piece wins. Build size: 46% of flash, 23% of static RAM.
-- **Not tested on real hardware:** no Uno was connected. How it sounds, the real wiring, switches and knob, and the power bank are all unverified.
+- **Tested on a real Uno R3 with nothing wired (2026-11-07):** see "Findings". How it sounds, the real wiring, switches and knob, the LCD, LEDs and the power bank are all unverified.
 - **Students to do on hardware:** follow the checklist in `code/README.md`: A0 at all 8 keys, A1 at all 7 ticks (Q24, Q25), and the 10-minute power-bank test (Q26).
-- **Students to do on Михаил's machine:** run `./maestro fix-permissions` once, or uploads will probably fail. The user is not in the `dialout` group.
-- **Not tested with a real Uno:** `./maestro upload`, `hwtest` and `monitor`, including their permission handling, because no Uno was connected. Their no-Uno errors and Uno detection logic were checked. Windows is untested.
+- **Михаил's machine:** `./maestro fix-permissions` has been run. Logging out and in finishes it, and until then `./maestro` works around it.
+- **Not tested:** `pio device monitor` inside `./maestro hwtest` and `./maestro monitor` in a real terminal, because the agent has no interactive terminal; their uploads worked and the serial output was read directly. Windows is also untested.
 
 ## 4. Superseded
 
@@ -117,6 +117,7 @@ The students asked the agent to iterate to a finished product, so these small de
 | **Two keys cannot be detected reliably, so a two-key gesture cannot be used.** Two pressed keys short part of the ladder and can read as a valid third key. Ми + Сол reads about 682, which decodes as Фа. До + any other key reads 1023, which is just До. | Calculated from the ladder design, not yet measured on hardware. |
 | **The 10 kΩ pull-down leaves enough margin for decoding keys.** It shifts a reading by about 25 counts at most, leaving at least 38 of the ±64 window. With random ±5% resistors, every key still decoded correctly across 20,000 sets, with at least 21 counts to spare. Expected A0 values: 1023, 878, 742, 614, 489, 368, 247, 125. | Calculated and simulated, not yet measured on hardware. This corrects an earlier figure of 21 counts. |
 | **The knob's total travel is not known.** The case only fixes the ticks at −120° to +120°. If the pot turns 270°, 7 even zones are about 38° each, close to the 40° tick spacing. | Ticks checked in `maestro.scad`; the 270° is an assumption. Measure A1 at each tick. |
+| **The real Uno accepts and runs the firmware.** Genuine Uno R3 detected on `/dev/ttyACM0` (USB ID 2341:0043). `./maestro upload` and `hwtest` wrote and verified flash, and the serial debug output worked. The debug game reached the main menu at 655 ms, matching the 630 ms boot cue. The game's first start wrote version byte 0x43 and 30 zero bytes to the real EEPROM. | Measured on the real board with nothing wired, 2026-11-07. |
 | **The pin count is sufficient, with 3 pins to spare.** The Uno has 20 pins and the design uses 17: keys 1, knob 1, LCD 6, piezo 1, LEDs 8. A5 (random seed), D0 and D1 (Serial) stay free. Without the ladder, the keys would need 8 pins: 24 in total, too many. | Counted from the handoff pin map. |
 | **All 8 LEDs can be on at once.** About 100 mA in total: about 14 mA for each red, yellow and green, 9 mA for blue and white. Under the chip's 200 mA total, and A2–A4 are well under their port group's limit. | Calculated from typical LED voltages and datasheet limits from memory, not measured. |
 | **LED load should not disturb key or knob decoding.** The ladder and pot run from the same 5 V as the ADC reference, so readings follow any supply dip. | Reasoned from the circuit, not measured. |
