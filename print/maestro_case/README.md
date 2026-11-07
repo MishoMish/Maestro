@@ -93,7 +93,7 @@ For key *k* = 1…8, let **n = 8k − 4** (columns 4, 12, 20, 28, 36, 44, 52, 60
 | LED resistor 220 Ω | column n+2 row b → back GND rail |
 | LED wire | column n row a → its Uno pin (table above) |
 | A0 wire | column n+1 row g → front A0 rail |
-| Ladder 220 Ω | column n−1 row i → column n+7 row i (to the next key), for keys 1–7 |
+| Ladder 220 Ω | column n−1 row h → column n+7 row i (to the next key), for keys 1–7. Rows h and i are connected, and this keeps two legs out of one hole |
 | Key 1 top | column 3 row a → back 5V rail |
 | Key 8 bottom | column 59 row j → 220 Ω → front GND rail |
 | Pull-down 10 kΩ | front A0 rail → front GND rail (left end) |
