@@ -249,10 +249,7 @@ def play_wav(path):
     players = [["pw-play"], ["paplay"], ["aplay", "-q"], ["afplay"], ["ffplay", "-nodisp", "-autoexit", "-loglevel", "quiet"]]
     for player in players:
         if shutil.which(player[0]):
-            try:
-                return subprocess.call(player + [str(path)])
-            except KeyboardInterrupt:
-                return 0
+            return subprocess.call(player + [str(path)])
     if sys.platform == "win32":
         import winsound
         winsound.PlaySound(str(path), winsound.SND_FILENAME)
