@@ -71,7 +71,8 @@ If the two files disagree about the software, this one wins. Section 5 lists the
 
 No design questions are open. The students confirmed the design ("You can start cooking") on 2026-11-07.
 
-- **Song approval (Q15):** the students have not yet confirmed that the three WAV previews sound right. All three songs are in the firmware so the product is complete, but they are unapproved drafts.
+- **Song approval (Q15):** Михаил approved the songs by ear on 2026-11-07. *Turkish March* still needs checking by someone who knows the tune, because Михаил said they may not know it. No song has been checked against a score.
+- **Possible 4th song:** Михаил asked for Azis's "Sen Trope". The agent does not reliably know its notes and did not invent any. Waiting for a student to choose a way forward. This repo is public, so a transcription of that song should not be pushed without thinking about copyright.
 - **Agent's implementation choices:** see below. A student can overrule any of them.
 
 ## 3. Implementation choices made by the agent

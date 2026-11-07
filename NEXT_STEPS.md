@@ -13,10 +13,10 @@ Work from top to bottom and tick things off. Skip anything you've already done, 
 
 The songs were written from memory, so they may have wrong notes.
 
-- [ ] Listen to all three with `./maestro listen`.
-- [ ] Check them against a score, especially *Turkish March*, and *Ode to Joy*'s middle section.
+- [x] Listen to all three with `./maestro listen` (approved by Михаил).
+- [ ] Have someone who knows *Turkish March* listen to it, or compare it with a recording of Mozart's "Rondo alla Turca".
+- [ ] Check the songs against a score, especially *Turkish March*, and *Ode to Joy*'s middle section.
 - [ ] Fix anything wrong, using [the song guide](tools/songs/README.md).
-- [ ] Mark Q15 as approved in [DECISIONS.md](DECISIONS.md).
 
 ## 3. Review the small choices
 
