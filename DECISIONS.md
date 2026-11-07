@@ -100,7 +100,7 @@ The students asked the agent to iterate to a finished product, so these small de
 - **Tested on a real Uno R3 with nothing wired (2026-11-07):** see "Findings". How it sounds, the real wiring, switches and knob, the LCD, LEDs and the power bank are all unverified.
 - **Students to do on hardware:** follow the checklist in `code/README.md`: A0 at all 8 keys, A1 at all 7 ticks (Q24, Q25), and the 10-minute power-bank test (Q26).
 - **Михаил's machine:** `./maestro fix-permissions` has been run. Logging out and in finishes it, and until then `./maestro` works around it.
-- **Not tested:** `pio device monitor` inside `./maestro hwtest` and `./maestro monitor` in a real terminal, because the agent has no interactive terminal; their uploads worked and the serial output was read directly. Windows is also untested.
+- **Not tested:** Windows. The live readout in `./maestro hwtest` and `./maestro monitor` was confirmed by Михаил in a real terminal on 2026-11-07.
 
 ## 4. Superseded
 
