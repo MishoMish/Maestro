@@ -1,6 +1,6 @@
 # Virtual device tests
 
-These tests run the real compiled firmware (`firmware.elf`) on a simulated ATmega328P, using [simavr](https://github.com/buserror/simavr). `harness.c` emulates the case's wiring: the LCD, 8 LEDs, piezo, resistor ladder, knob and EEPROM. They need no Arduino.
+These tests run the real compiled firmware (`firmware.elf`) on a simulated ATmega328P, using [simavr](https://github.com/buserror/simavr). `harness.c` emulates the LCD, 8 LEDs, piezo and EEPROM, and every part is connected by following the build guide's wiring list (`tools/guide/wiring.py`), so a mistake in the guide makes the tests fail. They need no Arduino.
 
 ```
 ./maestro test            # several minutes on 14 cores
@@ -12,6 +12,7 @@ The first run calls `setup.sh`, which downloads simavr into `tools/sim/.deps` wi
 
 | File | Covers |
 | --- | --- |
+| `test_guide.py` | The build guide against the firmware's real pins, deliberately wrong wiring, and the on-chip self-test in the simulator |
 | `test_menus.py` | Menus, Yes/No, knob, key reading, resistor tolerance, idle screen, Free play, Records |
 | `test_game.py` | Channels per mode, lives, Easy, rhythm, replay, pause, scoring, records |
 | `test_ear.py` | Ear mode |

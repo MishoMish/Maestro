@@ -29,11 +29,11 @@ def main():
     if not (HERE / ".deps" / "libharness.so").exists():
         subprocess.check_call([str(HERE / "setup.sh")])
     subprocess.check_call([sys.executable, str(ROOT / "tools" / "make_songs.py")], stdout=subprocess.DEVNULL)
-    subprocess.check_call(["pio", "run", "-d", str(ROOT / "code"), "-e", "uno", "-e", "debug", "-e", "hwtest"],
+    subprocess.check_call(["pio", "run", "-d", str(ROOT / "code"), "-e", "uno", "-e", "debug", "-e", "hwtest", "-e", "selftest", "-e", "selftest_short"],
                           stdout=subprocess.DEVNULL)
 
     sys.path.insert(0, str(HERE))
-    modules = ["test_menus", "test_game", "test_ear"] + (["test_full_games"] if everything or names else [])
+    modules = ["test_guide", "test_menus", "test_game", "test_ear"] + (["test_full_games"] if everything or names else [])
     tests = []
     for suite in unittest.defaultTestLoader.loadTestsFromNames(modules):
         for group in suite:

@@ -10,11 +10,12 @@ All the usual commands are in the [main README](../README.md). This page covers 
    ./maestro check
    ./maestro fix-permissions    # only if check asks for it
    ```
-3. **Connect the Uno by USB and run the hardware test:**
+3. **Optional: test the bare Uno first.** With nothing wired, run `./maestro selftest`. It plays the real game on the Uno's own chip with a scripted player, checks the pins, timers, ADC and EEPROM, and puts the game back afterwards.
+4. **Connect the Uno by USB and run the hardware test:**
    ```
    ./maestro hwtest
    ```
-4. **Check the hardware.** Every LED lights once in key order. Then, with the LCD contrast pot adjusted until text is visible:
+5. **Check the hardware.** Every LED lights once in key order. Then, with the LCD contrast pot adjusted until text is visible:
 
    | Check | Expected | If not |
    | --- | --- | --- |
@@ -22,11 +23,11 @@ All the usual commands are in the [main README](../README.md). This page covers 
    | Nothing pressed | `-` and `A0` near 0 | A0 wire or the 10 kΩ pull-down is loose |
    | Turn the knob to each of the 7 ticks | `tick=` shows 1 to 7, in order | See "Troubleshooting" |
 
-5. **Upload the game:**
+6. **Upload the game:**
    ```
    ./maestro upload
    ```
-6. **Test the power bank:** run it from the bank, untouched, for 10 minutes. If it switches off, try another bank; the firmware has no keep-alive (DECISIONS.md, Q26).
+7. **Test the power bank:** run it from the bank, untouched, for 10 minutes. If it switches off, try another bank; the firmware has no keep-alive (DECISIONS.md, Q26).
 
 Records survive uploads, so use tick 7 (Reset records) to clear any from testing.
 
@@ -54,3 +55,4 @@ For a log of game state changes over USB, run `./maestro monitor`.
 - `src/config.h`: pins and every tunable number
 - `src/melodies_data.h`: generated from `tools/songs/`, so never edit it
 - `hwtest/main.cpp`: the hardware test
+- `selftest/selftest.cpp`: the on-chip self-test, a scripted player for the real game. Its hooks in `src/` exist only in that build

@@ -104,6 +104,7 @@ class Nets:
 
 
 def build_nets(parts, pressed=None):
+    pressed_keys = pressed if isinstance(pressed, (tuple, list)) else (pressed,)
     nets = Nets()
     # A tact switch's legs on one side are joined inside it, across the channel.
     for part in parts:
@@ -111,7 +112,7 @@ def build_nets(parts, pressed=None):
             n = key_n(part.info["k"])
             nets.join(("F", n - 1, "top"), ("F", n - 1, "bottom"))
             nets.join(("F", n + 1, "top"), ("F", n + 1, "bottom"))
-            if part.info["k"] == pressed:
+            if part.info["k"] in pressed_keys:
                 nets.join(("F", n - 1, "bottom"), ("F", n + 1, "bottom"))
         elif part.kind == "wire":
             nets.join(base_net(part.a), base_net(part.b))
@@ -160,6 +161,28 @@ def solve_a0(parts, pressed):
         return 0
     i = index[a0]
     return int(1023 * (matrix[i][size] / matrix[i][i]) / 5.0)
+
+
+def uno_map(parts=None):
+    """Which Uno pin each part is really on, worked out by following the guide's wires."""
+    parts = parts if parts is not None else build_parts()
+    nets = build_nets(parts)
+    names = [f"D{i}" for i in range(14)] + [f"A{i}" for i in range(6)]
+    pin_of = {}
+    for name in names:
+        pin_of.setdefault(nets.find(("U", name)), name)
+
+    def find(node):
+        return pin_of.get(nets.find(node))
+
+    leds = []
+    for k in range(1, 9):
+        led = [p for p in parts if p.kind == "led" and p.info["k"] == k]
+        leds.append(find(base_net(led[0].a)) if led else None)
+    return {
+        "leds": leds, "piezo": find(("PIEZO", "1")), "knob": find(("KNOB", "2")), "keys": find(("U", "A0")) and "A0",
+        "lcd": {name: find(("LCD", name)) for name in ("RS", "E", "D4", "D5", "D6", "D7")},
+    }
 
 
 def decode(value):

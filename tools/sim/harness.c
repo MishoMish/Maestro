@@ -1,6 +1,7 @@
-/* Virtual Маестро: runs the real firmware.elf in simavr with the case's wiring.
- * Emulates the LCD (HD44780, 4-bit) on D12,D11,D5,D4,D3,D2, 8 LEDs on
- * D6,D7,D9,D10,D13,A2,A3,A4 and the piezo on D8. A0/A1 voltages are set from Python. */
+/* Virtual Маестро: runs the real firmware.elf in simavr, wired however Python says.
+ * device.py takes the wiring from tools/guide/wiring.py, the list the build guide is drawn
+ * from, so a mistake in the guide shows up here as wrong behaviour.
+ * Emulates an HD44780 LCD in 4-bit mode, 8 LEDs and the piezo. A0/A1 voltages come from Python. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,6 +11,7 @@
 #include "avr_ioport.h"
 #include "avr_adc.h"
 #include "avr_eeprom.h"
+#include "avr_uart.h"
 
 #define F_CPU_HZ 16000000UL
 #define DDRB 0x24
@@ -37,20 +39,29 @@ static uint64_t last_edge, edge_total;
 static int tone_on, tone_hz;
 static unsigned min_sp;
 
+typedef struct { char port; int bit; } pin_t;
+static pin_t led_pins[8], lcd_rs, lcd_e, lcd_d[4], piezo_pin;
+static char *uart_buf;
+static size_t uart_len, uart_read;
+#define UART_MAX (1u << 20)
+
+static int ddr_of(char port) { return port == 'B' ? DDRB : port == 'C' ? DDRC : DDRD; }
+static int port_of(char port) { return port == 'B' ? PORTB : port == 'C' ? PORTC : PORTD; }
+static int pin_level(pin_t p) { return (avr->data[port_of(p.port)] >> p.bit) & 1; }
+
 static double now_ms(void) { return (double)avr->cycle * 1000.0 / F_CPU_HZ; }
 
 static void log_event(int kind, int value, double t) {
   if (event_count < MAX_EVENTS) { events[event_count++] = (event_t){t, kind, value}; }
 }
 
-static int port_out(int ddr, int port, int bit) {
-  return (avr->data[ddr] & avr->data[port] & (1 << bit)) ? 1 : 0;
-}
-
 static int leds_now(void) {
-  return port_out(DDRD, PORTD, 6) | port_out(DDRD, PORTD, 7) << 1 | port_out(DDRB, PORTB, 1) << 2
-       | port_out(DDRB, PORTB, 2) << 3 | port_out(DDRB, PORTB, 5) << 4 | port_out(DDRC, PORTC, 2) << 5
-       | port_out(DDRC, PORTC, 3) << 6 | port_out(DDRC, PORTC, 4) << 7;
+  int mask = 0;
+  for (int i = 0; i < 8; i++) {
+    if (led_pins[i].port && (avr->data[ddr_of(led_pins[i].port)] & (1 << led_pins[i].bit)) && pin_level(led_pins[i]))
+      mask |= 1 << i;
+  }
+  return mask;
 }
 
 static void led_cb(struct avr_irq_t *irq, uint32_t value, void *param) {
@@ -70,9 +81,8 @@ static void lcd_byte(int rs, int b) {
 
 static void lcd_e_cb(struct avr_irq_t *irq, uint32_t value, void *param) {
   if (value) return;  /* latch on the falling edge of E */
-  int d = avr->data[PORTD];
-  int nibble = ((d >> 5) & 1) | ((d >> 4) & 1) << 1 | ((d >> 3) & 1) << 2 | ((d >> 2) & 1) << 3;
-  int rs = (avr->data[PORTB] >> 4) & 1;
+  int nibble = pin_level(lcd_d[0]) | pin_level(lcd_d[1]) << 1 | pin_level(lcd_d[2]) << 2 | pin_level(lcd_d[3]) << 3;
+  int rs = pin_level(lcd_rs);
   if (lcd_8bit) { lcd_byte(rs, nibble << 4); lcd_have_high = 0; return; }
   if (!lcd_have_high) { lcd_high = nibble; lcd_have_high = 1; }
   else { lcd_byte(rs, lcd_high << 4 | nibble); lcd_have_high = 0; }
@@ -107,6 +117,10 @@ static void piezo_cb(struct avr_irq_t *irq, uint32_t value, void *param) {
   edge_total++;
 }
 
+static void uart_cb(struct avr_irq_t *irq, uint32_t value, void *param) {
+  if (uart_len < UART_MAX) uart_buf[uart_len++] = (char)value;
+}
+
 static void watch(char port, int bit, avr_irq_notify_t cb) {
   avr_irq_register_notify(avr_io_getirq(avr, AVR_IOCTL_IOPORT_GETIRQ(port), bit), cb, NULL);
 }
@@ -138,11 +152,34 @@ int sim_open(const char *elf_path) {
   last_edge = 0; edge_total = 0; tone_on = 0; tone_hz = 0;
   min_sp = 0xFFFF;
 
-  watch('D', 6, led_cb); watch('D', 7, led_cb); watch('B', 1, led_cb); watch('B', 2, led_cb);
-  watch('B', 5, led_cb); watch('C', 2, led_cb); watch('C', 3, led_cb); watch('C', 4, led_cb);
-  watch('B', 3, lcd_e_cb);
-  watch('B', 0, piezo_cb);
+  memset(led_pins, 0, sizeof led_pins);
+  if (!uart_buf) uart_buf = malloc(UART_MAX);
+  uart_len = uart_read = 0;
+  /* Stop simavr printing the serial output itself, and keep a copy for Python. */
+  uint32_t flags = 0;
+  avr_ioctl(avr, AVR_IOCTL_UART_GET_FLAGS('0'), &flags);
+  flags &= ~(AVR_UART_FLAG_STDIO | AVR_UART_FLAG_POLL_SLEEP);
+  avr_ioctl(avr, AVR_IOCTL_UART_SET_FLAGS('0'), &flags);
+  avr_irq_register_notify(avr_io_getirq(avr, AVR_IOCTL_UART_GETIRQ('0'), UART_IRQ_OUTPUT), uart_cb, NULL);
   return 0;
+}
+
+/* Wiring, from Python. kind: 0 LED (index = key), 1 LCD RS, 2 LCD E, 3 LCD data (index 0-3), 4 piezo. */
+void sim_wire(int kind, int index, char port, int bit) {
+  pin_t pin = {port, bit};
+  switch (kind) {
+    case 0: led_pins[index] = pin; watch(port, bit, led_cb); break;
+    case 1: lcd_rs = pin; break;
+    case 2: lcd_e = pin; watch(port, bit, lcd_e_cb); break;
+    case 3: lcd_d[index] = pin; break;
+    case 4: piezo_pin = pin; watch(port, bit, piezo_cb); break;
+  }
+}
+
+size_t sim_uart(char *out, size_t max) {
+  size_t n = 0;
+  while (uart_read < uart_len && n < max) out[n++] = uart_buf[uart_read++];
+  return n;
 }
 
 /* Runs the firmware for ms milliseconds. Returns 0, or the CPU state if it stopped. */
@@ -187,3 +224,6 @@ int sim_eeprom_set(unsigned addr, unsigned char *in, unsigned size) {
   avr_eeprom_desc_t desc = {in, addr, size};
   return avr_ioctl(avr, AVR_IOCTL_EEPROM_SET, &desc);
 }
+
+/* Debugging: one byte of the AVR's data memory (registers, I/O and RAM). */
+int sim_peek(unsigned addr) { return addr <= 0x8FF ? avr->data[addr] : -1; }

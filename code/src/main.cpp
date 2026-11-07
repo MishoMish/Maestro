@@ -6,6 +6,11 @@
 #include "output.h"
 #include "records.h"
 
+#ifdef MAESTRO_SELFTEST     // the self-test owns setup() and loop(), and calls the game's
+#define setup gameSetup
+#define loop gameLoop
+#endif
+
 enum State : uint8_t {
   ST_BOOT, ST_MENU, ST_PIECE, ST_RECORDS, ST_YESNO, ST_MESSAGE, ST_FREE, ST_IDLE,
   ST_PROMPT, ST_INPUT, ST_SETTLE, ST_FEEDBACK,

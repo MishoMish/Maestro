@@ -7,10 +7,12 @@ Windows:      python tools\\maestro_cli.py [command]
 import getpass
 import json
 import os
+import queue
 import shlex
 import shutil
 import subprocess
 import sys
+import threading
 from pathlib import Path
 
 import make_songs
@@ -230,6 +232,105 @@ def cmd_monitor(_args):
     return run_on_port([pio, "device", "monitor", "-d", str(CODE), "-e", "debug", "--port", port], port)
 
 
+def serial_lines(port):
+    """Starts reading the Uno's serial output. Returns (process, queue of lines). Linux and macOS."""
+    flag = "-f" if sys.platform == "darwin" else "-F"
+    script = f"stty {flag} {shlex.quote(port)} 115200 raw -echo -hupcl; exec cat {shlex.quote(port)}"
+    _, wrap = port_ready(port)
+    command = ["sg", "dialout", "-c", script] if wrap else ["sh", "-c", script]
+    # Its own process group, so that stopping it also stops cat. A leftover cat holds the port
+    # and makes the next upload fail.
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, text=True, errors="replace", start_new_session=True)
+    lines = queue.Queue()
+
+    def pump():
+        for line in process.stdout:
+            lines.put(line.rstrip())
+        lines.put(None)
+    threading.Thread(target=pump, daemon=True).start()
+    return process, lines
+
+
+def stop_serial(process):
+    """Stops a serial reader from serial_lines, including its cat, and waits for the port to free up."""
+    import signal
+    import time
+    try:
+        os.killpg(process.pid, signal.SIGTERM)
+    except ProcessLookupError:
+        pass
+    try:
+        process.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        os.killpg(process.pid, signal.SIGKILL)
+    time.sleep(1)
+
+
+def cmd_selftest(_args):
+    """Runs the real game on the Uno's own processor with a scripted player. Needs nothing wired."""
+    pio = need_pio()
+    if not pio or regenerate_songs() is None:
+        return 1
+    port = need_uno(pio)
+    if not port:
+        return 1
+    if sys.platform == "win32":
+        return fail("The self-test reader needs Linux or macOS. Upload the selftest build and open a serial monitor instead.")
+    say("Uploading the self-test...")
+    build = subprocess.run(["sg", "dialout", "-c", shlex.join([pio, "run", "-d", str(CODE), "-e", "selftest", "-t", "upload", "--upload-port", port])]
+                           if port_ready(port)[1] else [pio, "run", "-d", str(CODE), "-e", "selftest", "-t", "upload", "--upload-port", port],
+                           capture_output=True, text=True)
+    if build.returncode != 0:
+        say(build.stdout[-1500:])
+        return fail("The upload failed; see the messages above.")
+    say("Running. It takes about 20 minutes, and each result prints as it happens. Ctrl+C stops it.\n")
+    process, lines = serial_lines(port)
+    failures, summary, stopped = [], None, False
+    try:
+        while True:
+            try:
+                line = lines.get(timeout=300)
+            except queue.Empty:
+                failures.append("The board stopped reporting for 5 minutes, so it may have frozen.")
+                break
+            if line is None:
+                failures.append("The serial connection closed early.")
+                break
+            say(line)
+            if line.startswith("FAIL"):
+                failures.append(line[5:])
+            if line.startswith("RESULT"):
+                summary = line
+                break
+    except KeyboardInterrupt:
+        stopped = True
+        say("\nStopped.")
+    stop_serial(process)
+    say("\nPutting the normal game back on the Uno...")
+    upload = [pio, "run", "-d", str(CODE), "-e", "uno", "-t", "upload", "--upload-port", port]
+    result = run_on_port(upload, port)
+    if result != 0:
+        say("Trying once more...")
+        result = run_on_port(upload, port)
+    if result != 0:
+        failures.append("Putting the normal game back failed, so the Uno still has the self-test on it. "
+                        "Run ./maestro upload.")
+    if stopped:
+        say("\nThe self-test was stopped midway, so test scores may be in the records. Run it again to restore "
+            "them, or clear them with tick 7.")
+        return 1
+    say("\n" + "=" * 60)
+    if summary and not failures:
+        say(f"ALL GOOD: {summary[7:]}. The chip and the game's logic work on this board.")
+    else:
+        say(f"{summary[7:] if summary else 'Did not finish'}. These need a look:")
+        for failure in failures:
+            say(f"  - {failure}")
+    say("This doesn't test the wiring. Use ./maestro hwtest for that once it's wired.")
+    say("=" * 60)
+    return 0 if summary and not failures and result == 0 else 1
+
+
 def cmd_songs(_args):
     """Checks every song and rebuilds its data and WAV previews."""
     songs = regenerate_songs()
@@ -299,7 +400,8 @@ def cmd_test(args):
 
 COMMANDS = {
     "check": cmd_check, "fix-permissions": cmd_fix_permissions, "hwtest": cmd_hwtest, "upload": cmd_upload,
-    "songs": cmd_songs, "listen": cmd_listen, "build": cmd_build, "monitor": cmd_monitor, "test": cmd_test,
+    "selftest": cmd_selftest, "songs": cmd_songs, "listen": cmd_listen, "build": cmd_build, "monitor": cmd_monitor,
+    "test": cmd_test,
 }
 
 MENU = [
@@ -307,6 +409,7 @@ MENU = [
     ("Allow uploads to the Uno (once only)", "fix-permissions", []),
     ("Test the wiring (uploads the hardware test)", "hwtest", []),
     ("Upload the game to the Uno", "upload", []),
+    ("Test the Uno's own chip (nothing wired, about 20 minutes)", "selftest", []),
     ("Check all songs", "songs", []),
     ("Listen to a song", "listen", None),
     ("Run the tests (no Uno needed)", "test", []),

@@ -30,13 +30,14 @@ To upload from VS Code without a terminal, press **Ctrl+Shift+B**. Other actions
 | `./maestro fix-permissions` | Allows uploads on Linux, once only | |
 | `./maestro hwtest` | Uploads the hardware test and shows live key and knob readings | Yes |
 | `./maestro upload` | Checks the songs, then uploads the game | Yes |
+| `./maestro selftest` | Plays the real game on the Uno's own chip with a scripted player, about 20 minutes. Nothing needs to be wired. Puts the game back afterwards | Yes |
 | `./maestro songs` | Checks every song and rebuilds the previews | |
 | `./maestro listen` | Plays every song | |
 | `./maestro listen ode` | Plays one song; part of its name is enough | |
 | `./maestro listen ode 3` | Plays level 3 of a song and prints its notes | |
 | `./maestro build` | Checks that the firmware compiles | |
 | `./maestro monitor` | Uploads the game with a log of state changes | Yes |
-| `./maestro test` | Runs the tests on a simulated Uno | |
+| `./maestro test` | Runs the tests on a simulated Uno, wired exactly as the build guide says | |
 | `./maestro test --all` | Also plays whole pieces; takes about 15 minutes | |
 | `./maestro help` | Lists the commands | |
 

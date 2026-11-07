@@ -180,3 +180,7 @@ void lcdShow(const char* line0, const char* line1) {
   }
   shownValid = true;
 }
+
+#ifdef MAESTRO_SELFTEST
+const char* lcdLine(uint8_t row) { return shown[row]; }
+#endif

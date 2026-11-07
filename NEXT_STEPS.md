@@ -9,6 +9,8 @@ Work from top to bottom and tick things off. Skip anything you've already done, 
 - [x] Run `./maestro check`, then `./maestro fix-permissions` if it asks you to (done on Михаил's computer; log out and in once to finish).
 - [ ] Give Богомил the code and have them run `./maestro check` too. On Windows, use `python tools\maestro_cli.py check`; this hasn't been tried on Windows yet.
 
+- [x] Test the bare Uno with `./maestro selftest` (100 of 100 passed on Михаил's board).
+
 ## 2. Approve the songs
 
 The songs were written from memory, so they may have wrong notes.

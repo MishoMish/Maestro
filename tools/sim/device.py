@@ -5,7 +5,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
+sys.path.insert(0, str(ROOT / "tools" / "guide"))
 import make_songs  # noqa: E402
+import wiring  # noqa: E402
 
 LIB = Path(__file__).resolve().parent / ".deps" / "libharness.so"
 ELF = ROOT / "code" / ".pio" / "build" / "uno" / "firmware.elf"
@@ -21,39 +23,60 @@ _lib = ctypes.CDLL(str(LIB))
 _lib.sim_now_ms.restype = ctypes.c_double
 _lib.sim_run_ms.argtypes = [ctypes.c_double]
 _lib.sim_open.argtypes = [ctypes.c_char_p]
+_lib.sim_wire.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_char, ctypes.c_int]
+_lib.sim_uart.restype = ctypes.c_size_t
+_lib.sim_uart.argtypes = [ctypes.c_char_p, ctypes.c_size_t]
 _lib.sim_events.restype = ctypes.c_size_t
 _lib.sim_events.argtypes = [ctypes.POINTER(Event), ctypes.c_size_t]
 
 
-def key_voltage_mv(*keys):
-    """A0 voltage for the pressed keys (1-8), solving the real ladder with its pull-down.
+def key_voltage_mv(*keys, parts=None):
+    """A0 voltage for the pressed keys (1-8), solved from the build guide's wiring list."""
+    reading = wiring.solve_a0(parts if parts is not None else wiring.build_parts(), keys if keys else None)
+    return int(reading * 5000 / 1023)
 
-    Two pressed keys short the resistors between their taps, so only the top and
-    bottom taps matter.
-    """
-    if not keys:
-        return 0
-    above = (min(keys) - 1) * LADDER_OHMS     # from 5 V to the highest tap
-    below = (9 - max(keys)) * LADDER_OHMS     # from the lowest tap to GND
-    if above == 0:
-        return 5000
-    load = 1 / (1 / below + 1 / PULL_DOWN_OHMS)
-    return int(5000 * load / (above + load))
+
+def pin_location(name):
+    """Uno pin name to (port letter, bit)."""
+    number = int(name[1:])
+    if name[0] == "A":
+        return "C", number
+    return ("D", number) if number < 8 else ("B", number - 8)
 
 
 class Device:
     """One Uno running firmware.elf. Keys are numbered 1-8, ticks 1-7, as printed."""
 
-    def __init__(self, elf=ELF, eeprom=None, knob_tick=1):
+    def __init__(self, elf=ELF, eeprom=None, knob_tick=1, parts=None):
         self.events = []
+        self.uart = ""
+        self.parts = parts if parts is not None else wiring.build_parts()
         result = _lib.sim_open(str(elf).encode())
         if result != 0:
             raise RuntimeError(f"cannot load {elf}: {result}")
+        self._wire_from_guide()
         if eeprom is not None:
             buffer = (ctypes.c_ubyte * len(eeprom)).from_buffer_copy(eeprom)
             _lib.sim_eeprom_set(0, buffer, len(eeprom))
         self.set_adc(0, 0)
         self.knob_to_tick(knob_tick, settle=False)
+
+    def _wire_from_guide(self):
+        """Connects the virtual parts by following the guide's wires, not by assuming pins."""
+        uno = wiring.uno_map(self.parts)
+
+        def wire(kind, index, name):
+            if name:
+                port, bit = pin_location(name)
+                _lib.sim_wire(kind, index, port.encode(), bit)
+        for index, name in enumerate(uno["leds"]):
+            wire(0, index, name)
+        wire(1, 0, uno["lcd"]["RS"])
+        wire(2, 0, uno["lcd"]["E"])
+        for index, name in enumerate(("D4", "D5", "D6", "D7")):
+            wire(3, index, uno["lcd"][name])
+        wire(4, 0, uno["piezo"])
+        self.knob_channel = int(uno["knob"][1:]) if uno["knob"] and uno["knob"][0] == "A" else None
 
     # --- Time ---
     def run(self, ms):
@@ -74,6 +97,15 @@ class Device:
                 return
 
     # --- Outputs ---
+    def serial(self):
+        """Everything the firmware has printed so far over USB serial."""
+        buffer = ctypes.create_string_buffer(65536)
+        while True:
+            count = _lib.sim_uart(buffer, 65536)
+            self.uart += buffer.raw[:count].decode("latin-1")
+            if count < 65536:
+                return self.uart
+
     def lcd(self, row=None):
         text = []
         for r in (0, 1):
@@ -121,7 +153,7 @@ class Device:
 
     def press(self, *keys, bounce=True):
         """Press with contact bounce (about 4 ms of chatter), then stay down."""
-        mv = key_voltage_mv(*keys)
+        mv = key_voltage_mv(*keys, parts=self.parts)
         if bounce:
             for level in (mv, 0, mv, 0):
                 self.set_adc(0, level)
@@ -150,7 +182,8 @@ class Device:
     def knob_raw(self, value, settle=True):
         self._track_tick(value)
         self.knob_value = value
-        self.set_adc(1, int(value * 5000 / 1023))
+        if self.knob_channel is not None:
+            self.set_adc(self.knob_channel, int(value * 5000 / 1023))
         if settle:
             self.run(300)
 

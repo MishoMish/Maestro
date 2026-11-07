@@ -8,6 +8,17 @@ static uint32_t pendingTime;
 static uint16_t knobValue;
 static uint8_t tick;
 
+#ifdef MAESTRO_SELFTEST
+// The real ADC still runs, so timing stays real, but a scripted player supplies the values.
+extern int selftestKeys, selftestKnob;
+static int inputRead(uint8_t pin) {
+  analogRead(pin);
+  return pin == PIN_KEYS ? selftestKeys : selftestKnob;
+}
+#else
+#define inputRead analogRead
+#endif
+
 static int8_t decodeKey(int value) {
   int level = (value + KEY_STEP / 2) / KEY_STEP;  // 0 = none, 8 = key 1
   if (level < 1) return -1;
@@ -16,7 +27,7 @@ static int8_t decodeKey(int value) {
 }
 
 static uint16_t readKnobRaw() {
-  int value = analogRead(PIN_KNOB);
+  int value = inputRead(PIN_KNOB);
   return KNOB_REVERSED ? 1023 - value : value;
 }
 
@@ -38,7 +49,7 @@ void inputBegin() {
 void inputUpdate(uint32_t now) {
   if (now - lastKeyScan >= KEY_SCAN_MS) {
     lastKeyScan = now;
-    int8_t key = decodeKey(analogRead(PIN_KEYS));
+    int8_t key = decodeKey(inputRead(PIN_KEYS));
     if (key == candidate) {
       if (candidateReads < 255) candidateReads++;
     } else {
